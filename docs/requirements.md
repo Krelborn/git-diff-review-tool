@@ -169,6 +169,10 @@ Developers using AI coding assistants (e.g. Claude Code) need a way to systemati
 
 - [x] **Task 3.1 — Frontend: Unified Diff Renderer** (2026-03-28): `src/components/UnifiedDiffView.tsx` renders `DiffFile` hunks with the 4-column grid layout (`48px 48px 20px 1fr`): old line number, new line number, `+`/`−`/space indicator, and line content. Added lines get green-tinted background and gutter; removed lines get red-tinted; context lines use muted text. Hunk header rows render with dark background and muted text. Empty state shows "Select a file to review". Wired into `App.tsx` below a toolbar row (DiffModeSelector + BranchPicker). `src/App.css` fully replaced with the dark-theme design tokens and all CSS classes needed by FileTree and the diff viewer. TypeScript strict mode and ESLint pass cleanly.
 
+### Phase 4 — Inline Commenting
+
+- [x] **Task 4.1 — Rust: Comment Commands** (2026-03-28): `list_comments`, `upsert_comment`, `delete_comment`, and `delete_all_comments` Tauri commands implemented in `src-tauri/src/lib.rs`. `Comment` Rust struct serialises with `camelCase` field names (`repoId`, `filePath`, `lineNum`, `isOutdated`); `isOutdated` is always `false` from the backend — computed on the frontend. DB logic extracted into `db_*()` helpers for testability without a Tauri runtime. All four commands registered in `invoke_handler!`. 8 integration tests using an in-memory SQLite DB — all pass. `cargo check` and `cargo test` clean.
+
 ### Phase 2 — Diff Loading & File Tree
 
 - [x] **Task 2.1 — Rust: Diff + Branch Commands** (2026-03-28): `get_diff`, `list_branches`, and `get_current_branch` Tauri commands implemented in `src-tauri/src/lib.rs`. Added `DiffMode` Rust enum matching the TypeScript discriminated union via `#[serde(tag = "type", rename_all = "camelCase")]`. `get_diff` dispatches to `git -C <path> diff HEAD` (working-tree mode) or `git -C <path> diff <base_branch>...HEAD` (branch mode, three-dot against merge-base). `list_branches` uses `--format=%(refname:short)` to avoid the `* ` prefix. `get_current_branch` uses `rev-parse --abbrev-ref HEAD`. All three registered in `invoke_handler!`. `cargo check` passes cleanly.

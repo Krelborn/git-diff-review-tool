@@ -33,7 +33,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 4 — Inline Commenting
 
-- [ ] [#12 Task 4.1 — Rust: Comment Commands](https://github.com/Krelborn/git-diff-review-tool/issues/12)
+- [x] [#12 Task 4.1 — Rust: Comment Commands](https://github.com/Krelborn/git-diff-review-tool/issues/12)
 - [ ] [#13 Task 4.2 — Frontend: comments Zustand Slice + Outdated Detection](https://github.com/Krelborn/git-diff-review-tool/issues/13)
 - [ ] [#14 Task 4.3 — Frontend: Inline Comment Thread UI](https://github.com/Krelborn/git-diff-review-tool/issues/14)
 
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**9 / 21 complete** (#1, #2, #3, #4, #5, #6, #7, #8, #9)
+**10 / 21 complete** (#1, #2, #3, #4, #5, #6, #7, #8, #9, #12)
 
 ---
 
@@ -82,4 +82,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 1.2 completed (2026-03-28).** `reposSlice` expanded with `loadRepos`, `addRepo` (with error state), and `removeRepo` (optimistic with rollback). `src/components/RepoList.tsx` renders the sidebar repo section with OS folder picker via `@tauri-apps/plugin-dialog`, active-state highlighting, and per-item remove button. `App.tsx` calls `loadRepos()` on mount. 6 Vitest unit tests in `src/store/reposSlice.test.ts` — all pass. Vitest + jsdom added to devDependencies. `tsc --noEmit` clean.
 
-**Recommended next steps:** Task 4.1 (Rust: Comment Commands) is the next highest priority — it unblocks the entire inline commenting feature chain (4.2, 4.3). Alternatively, Task 3.2 (Virtual Scroll) improves performance for large diffs and is fully independent.
+**Task 4.1 completed (2026-03-28).** `list_comments`, `upsert_comment`, `delete_comment`, and `delete_all_comments` Tauri commands are live in `src-tauri/src/lib.rs`. `Comment` struct serialises with camelCase field names; `isOutdated` is always `false` from the backend (computed on the frontend after diffing). DB logic in `db_*()` helper functions so it's testable without Tauri; 8 integration tests using an in-memory SQLite DB, all pass. All four commands registered in `invoke_handler!`.
+
+**Recommended next steps:** Task 4.2 (Frontend: comments Zustand Slice + Outdated Detection) is now unblocked and is the next highest priority — it wires the frontend to the new Rust commands and implements outdated detection logic. Task 4.3 (Inline Comment Thread UI) depends on 4.2.

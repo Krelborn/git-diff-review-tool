@@ -33,6 +33,21 @@ pub struct Repo {
     pub path: String,
 }
 
+/// A comment anchored to a specific line in a diff.
+///
+/// `is_outdated` is always `false` here — the frontend computes the real value
+/// after comparing the line number against the current diff.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Comment {
+    pub id: i64,
+    pub repo_id: i64,
+    pub file_path: String,
+    pub line_num: i64,
+    pub body: String,
+    pub is_outdated: bool,
+}
+
 /// Managed state holding the single rusqlite connection.
 ///
 /// rusqlite::Connection is Send but not Sync; wrapping it in a Mutex makes it
@@ -242,6 +257,160 @@ fn get_current_branch(repo_path: String) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
+// ── Comment DB helpers ────────────────────────────────────────────────────
+// These are plain functions (not Tauri commands) so they can be called from
+// integration tests without a running Tauri instance.
+
+fn db_list_comments(
+    conn: &rusqlite::Connection,
+    repo_id: i64,
+) -> Result<Vec<Comment>, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, repo_id, file_path, line_num, body \
+             FROM comments \
+             WHERE repo_id = ?1 \
+             ORDER BY file_path, line_num",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let comments = stmt
+        .query_map(rusqlite::params![repo_id], |row| {
+            Ok(Comment {
+                id: row.get(0)?,
+                repo_id: row.get(1)?,
+                file_path: row.get(2)?,
+                line_num: row.get(3)?,
+                body: row.get(4)?,
+                is_outdated: false,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(comments)
+}
+
+fn db_upsert_comment(
+    conn: &rusqlite::Connection,
+    repo_id: i64,
+    file_path: &str,
+    line_num: i64,
+    body: &str,
+    id: Option<i64>,
+) -> Result<Comment, String> {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    match id {
+        None => {
+            // Insert a new comment.
+            conn.execute(
+                "INSERT INTO comments (repo_id, file_path, line_num, body, created_at, updated_at) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?5)",
+                rusqlite::params![repo_id, file_path, line_num, body, now],
+            )
+            .map_err(|e| e.to_string())?;
+
+            let new_id = conn.last_insert_rowid();
+            Ok(Comment {
+                id: new_id,
+                repo_id,
+                file_path: file_path.to_string(),
+                line_num,
+                body: body.to_string(),
+                is_outdated: false,
+            })
+        }
+        Some(existing_id) => {
+            // Update body and updated_at for the existing row.
+            let rows_changed = conn
+                .execute(
+                    "UPDATE comments SET body = ?1, updated_at = ?2 WHERE id = ?3",
+                    rusqlite::params![body, now, existing_id],
+                )
+                .map_err(|e| e.to_string())?;
+
+            if rows_changed == 0 {
+                return Err(format!("Comment {} not found", existing_id));
+            }
+
+            // Re-fetch to get the canonical stored values.
+            conn.query_row(
+                "SELECT id, repo_id, file_path, line_num, body FROM comments WHERE id = ?1",
+                rusqlite::params![existing_id],
+                |row| {
+                    Ok(Comment {
+                        id: row.get(0)?,
+                        repo_id: row.get(1)?,
+                        file_path: row.get(2)?,
+                        line_num: row.get(3)?,
+                        body: row.get(4)?,
+                        is_outdated: false,
+                    })
+                },
+            )
+            .map_err(|e| e.to_string())
+        }
+    }
+}
+
+fn db_delete_comment(conn: &rusqlite::Connection, id: i64) -> Result<(), String> {
+    conn.execute("DELETE FROM comments WHERE id = ?1", rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+fn db_delete_all_comments(conn: &rusqlite::Connection, repo_id: i64) -> Result<(), String> {
+    conn.execute(
+        "DELETE FROM comments WHERE repo_id = ?1",
+        rusqlite::params![repo_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+// ── Comment Tauri commands ────────────────────────────────────────────────
+
+/// Returns all comments for `repo_id` ordered by file path then line number.
+#[tauri::command]
+fn list_comments(repo_id: i64, state: tauri::State<'_, DbState>) -> Result<Vec<Comment>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    db_list_comments(&conn, repo_id)
+}
+
+/// Creates or updates a comment.
+///
+/// - `id = None` → insert; returns the new comment with its generated id.
+/// - `id = Some(n)` → update `body` and `updated_at` for comment `n`; returns
+///   the updated comment.
+#[tauri::command]
+fn upsert_comment(
+    repo_id: i64,
+    file_path: String,
+    line_num: i64,
+    body: String,
+    id: Option<i64>,
+    state: tauri::State<'_, DbState>,
+) -> Result<Comment, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    db_upsert_comment(&conn, repo_id, &file_path, line_num, &body, id)
+}
+
+/// Deletes the comment with the given `id`.
+#[tauri::command]
+fn delete_comment(id: i64, state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    db_delete_comment(&conn, id)
+}
+
+/// Deletes all comments belonging to `repo_id`.
+#[tauri::command]
+fn delete_all_comments(repo_id: i64, state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    db_delete_all_comments(&conn, repo_id)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![Migration {
@@ -277,8 +446,135 @@ pub fn run() {
             remove_repo,
             get_diff,
             list_branches,
-            get_current_branch
+            get_current_branch,
+            list_comments,
+            upsert_comment,
+            delete_comment,
+            delete_all_comments
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+// ── Integration tests ─────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Open an in-memory SQLite database and apply the schema so every test
+    /// starts from a clean, fully-migrated state.
+    fn new_test_db() -> rusqlite::Connection {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        conn.execute_batch(INITIAL_SCHEMA).unwrap();
+        conn
+    }
+
+    /// Insert a minimal repo row so foreign-key constraints are satisfied.
+    fn seed_repo(conn: &rusqlite::Connection) -> i64 {
+        conn.execute(
+            "INSERT INTO repos (path, name, added_at) VALUES ('/tmp/test-repo', 'test-repo', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+        conn.last_insert_rowid()
+    }
+
+    #[test]
+    fn list_comments_empty_returns_empty_vec() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        let comments = db_list_comments(&conn, repo_id).unwrap();
+        assert!(comments.is_empty());
+    }
+
+    #[test]
+    fn upsert_insert_creates_comment_with_generated_id() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        let comment = db_upsert_comment(&conn, repo_id, "src/main.ts", 42, "body text", None).unwrap();
+        assert!(comment.id > 0);
+        assert_eq!(comment.repo_id, repo_id);
+        assert_eq!(comment.file_path, "src/main.ts");
+        assert_eq!(comment.line_num, 42);
+        assert_eq!(comment.body, "body text");
+        assert!(!comment.is_outdated);
+    }
+
+    #[test]
+    fn list_comments_returns_inserted_comment() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        db_upsert_comment(&conn, repo_id, "src/main.ts", 42, "body text", None).unwrap();
+        let comments = db_list_comments(&conn, repo_id).unwrap();
+        assert_eq!(comments.len(), 1);
+        assert_eq!(comments[0].file_path, "src/main.ts");
+        assert_eq!(comments[0].line_num, 42);
+    }
+
+    #[test]
+    fn list_comments_ordered_by_file_then_line() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        db_upsert_comment(&conn, repo_id, "src/b.ts", 10, "b10", None).unwrap();
+        db_upsert_comment(&conn, repo_id, "src/a.ts", 20, "a20", None).unwrap();
+        db_upsert_comment(&conn, repo_id, "src/a.ts", 5, "a5", None).unwrap();
+        let comments = db_list_comments(&conn, repo_id).unwrap();
+        assert_eq!(comments[0].file_path, "src/a.ts");
+        assert_eq!(comments[0].line_num, 5);
+        assert_eq!(comments[1].file_path, "src/a.ts");
+        assert_eq!(comments[1].line_num, 20);
+        assert_eq!(comments[2].file_path, "src/b.ts");
+        assert_eq!(comments[2].line_num, 10);
+    }
+
+    #[test]
+    fn upsert_update_changes_body_and_preserves_other_fields() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        let original = db_upsert_comment(&conn, repo_id, "src/main.ts", 42, "original", None).unwrap();
+        let updated = db_upsert_comment(&conn, repo_id, "src/main.ts", 42, "updated", Some(original.id)).unwrap();
+        assert_eq!(updated.id, original.id);
+        assert_eq!(updated.body, "updated");
+        assert_eq!(updated.line_num, 42);
+        assert_eq!(updated.file_path, "src/main.ts");
+    }
+
+    #[test]
+    fn upsert_update_nonexistent_id_returns_error() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        let result = db_upsert_comment(&conn, repo_id, "src/main.ts", 1, "body", Some(9999));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn delete_comment_removes_it_from_list() {
+        let conn = new_test_db();
+        let repo_id = seed_repo(&conn);
+        let comment = db_upsert_comment(&conn, repo_id, "src/main.ts", 42, "body", None).unwrap();
+        db_delete_comment(&conn, comment.id).unwrap();
+        let comments = db_list_comments(&conn, repo_id).unwrap();
+        assert!(comments.is_empty());
+    }
+
+    #[test]
+    fn delete_all_comments_clears_repo_only() {
+        let conn = new_test_db();
+        let repo_a = seed_repo(&conn);
+        // Insert a second repo.
+        conn.execute(
+            "INSERT INTO repos (path, name, added_at) VALUES ('/tmp/repo-b', 'repo-b', '2026-01-01T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+        let repo_b = conn.last_insert_rowid();
+
+        db_upsert_comment(&conn, repo_a, "src/a.ts", 1, "a comment", None).unwrap();
+        db_upsert_comment(&conn, repo_b, "src/b.ts", 2, "b comment", None).unwrap();
+
+        db_delete_all_comments(&conn, repo_a).unwrap();
+
+        assert!(db_list_comments(&conn, repo_a).unwrap().is_empty());
+        assert_eq!(db_list_comments(&conn, repo_b).unwrap().len(), 1);
+    }
 }
