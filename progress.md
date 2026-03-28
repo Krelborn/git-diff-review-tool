@@ -74,4 +74,4 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 3.1 completed (2026-03-28).** `src/components/UnifiedDiffView.tsx` renders DiffFile hunks with the 4-column grid (old line#, new line#, indicator, content). Added=green, removed=red, context=muted. Hunk headers render as distinct separator rows. Empty state shows "Select a file to review". `src/App.css` fully replaced with dark-theme design tokens and CSS classes for FileTree + diff viewer. `App.tsx` wired with toolbar above diff viewer.
 
-**Recommended next steps (no Cargo needed):** Task 3.2 (Virtual Scroll for Unified View) — adds `@tanstack/react-virtual` to handle large diffs without UI jank. Task 3.3 (Syntax Highlighting) can follow. Once Cargo is installed, resume from Task 0.2.
+**Recommended next steps:** Cargo is now installed. Task 0.2 (SQLite Schema Migration) is the highest-priority unblocked backend task — it unblocks Tasks 1.1, 1.2, 4.1, 4.2, and 4.3. Frontend-only work (Tasks 3.2, 3.3) can proceed in parallel if preferred.
