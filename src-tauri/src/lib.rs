@@ -254,6 +254,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             SqlBuilder::new()
                 .add_migrations("sqlite:review-tool.db", migrations)
