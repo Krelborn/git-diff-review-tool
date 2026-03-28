@@ -23,7 +23,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 - [ ] [#5 Task 2.1 — Rust: Diff + Branch Commands](https://github.com/Krelborn/git-diff-review-tool/issues/5)
 - [x] [#6 Task 2.2 — Frontend: Diff Text Parser](https://github.com/Krelborn/git-diff-review-tool/issues/6)
 - [x] [#7 Task 2.3 — Frontend: diff Zustand Slice + DiffModeSelector + BranchPicker](https://github.com/Krelborn/git-diff-review-tool/issues/7)
-- [ ] [#8 Task 2.4 — Frontend: File Tree Sidebar](https://github.com/Krelborn/git-diff-review-tool/issues/8)
+- [x] [#8 Task 2.4 — Frontend: File Tree Sidebar](https://github.com/Krelborn/git-diff-review-tool/issues/8)
 
 ## Phase 3 — Unified Diff Viewer
 
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**3 / 21 complete** (#1, #6, #7)
+**4 / 21 complete** (#1, #6, #7, #8)
 
 ---
 
@@ -70,4 +70,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 2.3 completed (2026-03-28).** `src/store/` now has `reposSlice.ts`, `diffSlice.ts`, and `index.ts` (`useAppStore`). `DiffModeSelector` and `BranchPicker` components are in `src/components/`. The diff slice calls Tauri commands `get_diff`, `list_branches`, and `get_current_branch` — these silently fail (caught errors exposed via `diffError` state) until Task 2.1 provides the Rust implementations.
 
-**Recommended next steps (no Cargo needed):** Tasks 2.4 (File Tree Sidebar) or 3.1 (Unified Diff Renderer) — both use `useAppStore` from the now-complete store. Once Cargo is installed, resume from Task 0.2.
+**Task 2.4 completed (2026-03-28).** `src/components/FileTree.tsx` groups changed files by directory in the sidebar. Files with comments show a numeric badge (defaults to 0 until Task 4.2 provides the comments slice — accepts optional `commentCounts?: Map<string, number>` prop for reactivity). `App.tsx` now shows a 220px sidebar with the FileTree alongside the main panel.
+
+**Recommended next steps (no Cargo needed):** Task 3.1 (Unified Diff Renderer) — all prerequisites (#6, #7, #8) are now complete. Once Cargo is installed, resume from Task 0.2.
