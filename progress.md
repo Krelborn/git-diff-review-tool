@@ -27,7 +27,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 3 — Unified Diff Viewer
 
-- [ ] [#9 Task 3.1 — Frontend: Unified Diff Renderer](https://github.com/Krelborn/git-diff-review-tool/issues/9)
+- [x] [#9 Task 3.1 — Frontend: Unified Diff Renderer](https://github.com/Krelborn/git-diff-review-tool/issues/9)
 - [ ] [#10 Task 3.2 — Frontend: Virtual Scroll for Unified View](https://github.com/Krelborn/git-diff-review-tool/issues/10)
 - [ ] [#11 Task 3.3 — Frontend: Syntax Highlighting](https://github.com/Krelborn/git-diff-review-tool/issues/11)
 
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**4 / 21 complete** (#1, #6, #7, #8)
+**5 / 21 complete** (#1, #6, #7, #8, #9)
 
 ---
 
@@ -72,4 +72,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 2.4 completed (2026-03-28).** `src/components/FileTree.tsx` groups changed files by directory in the sidebar. Files with comments show a numeric badge (defaults to 0 until Task 4.2 provides the comments slice — accepts optional `commentCounts?: Map<string, number>` prop for reactivity). `App.tsx` now shows a 220px sidebar with the FileTree alongside the main panel.
 
-**Recommended next steps (no Cargo needed):** Task 3.1 (Unified Diff Renderer) — all prerequisites (#6, #7, #8) are now complete. Once Cargo is installed, resume from Task 0.2.
+**Task 3.1 completed (2026-03-28).** `src/components/UnifiedDiffView.tsx` renders DiffFile hunks with the 4-column grid (old line#, new line#, indicator, content). Added=green, removed=red, context=muted. Hunk headers render as distinct separator rows. Empty state shows "Select a file to review". `src/App.css` fully replaced with dark-theme design tokens and CSS classes for FileTree + diff viewer. `App.tsx` wired with toolbar above diff viewer.
+
+**Recommended next steps (no Cargo needed):** Task 3.2 (Virtual Scroll for Unified View) — adds `@tanstack/react-virtual` to handle large diffs without UI jank. Task 3.3 (Syntax Highlighting) can follow. Once Cargo is installed, resume from Task 0.2.

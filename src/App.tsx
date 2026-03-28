@@ -3,6 +3,7 @@ import { type JSX, useEffect } from "react";
 import { BranchPicker } from "./components/BranchPicker";
 import { DiffModeSelector } from "./components/DiffModeSelector";
 import { FileTree } from "./components/FileTree";
+import { UnifiedDiffView } from "./components/UnifiedDiffView";
 import { useAppStore } from "./store";
 
 function App(): JSX.Element {
@@ -41,14 +42,22 @@ function App(): JSX.Element {
           flex: 1,
           flexDirection: "column",
           overflow: "hidden",
-          padding: "2rem",
         }}
       >
-        <h1>Review Tool</h1>
-        <div style={{ alignItems: "center", display: "flex", gap: "8px", marginTop: "1rem" }}>
+        <div
+          style={{
+            alignItems: "center",
+            borderBottom: "1px solid var(--border)",
+            display: "flex",
+            flexShrink: 0,
+            gap: "8px",
+            padding: "8px 12px",
+          }}
+        >
           <DiffModeSelector />
           <BranchPicker />
         </div>
+        <UnifiedDiffView />
       </main>
     </div>
   );

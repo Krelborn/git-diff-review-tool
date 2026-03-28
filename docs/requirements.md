@@ -160,6 +160,10 @@ Developers using AI coding assistants (e.g. Claude Code) need a way to systemati
 - [x] **Task 0.1 — Project Scaffold** (2026-03-28): Tauri v2 + Vite + React 19 + TypeScript scaffold created. `tauri-plugin-sql`, `tauri-plugin-shell`, and `tauri-plugin-clipboard-manager` declared in `Cargo.toml` and wired into `capabilities/default.json`. ESLint (flat config, v9) and Prettier configured. TypeScript strict mode verified. `npm run lint` and `tsc --noEmit` pass cleanly.
 - [ ] **Task 0.2 — SQLite Schema Migration**: pending (blocked — Rust/Cargo not yet installed)
 
+### Phase 3 — Unified Diff Viewer
+
+- [x] **Task 3.1 — Frontend: Unified Diff Renderer** (2026-03-28): `src/components/UnifiedDiffView.tsx` renders `DiffFile` hunks with the 4-column grid layout (`48px 48px 20px 1fr`): old line number, new line number, `+`/`−`/space indicator, and line content. Added lines get green-tinted background and gutter; removed lines get red-tinted; context lines use muted text. Hunk header rows render with dark background and muted text. Empty state shows "Select a file to review". Wired into `App.tsx` below a toolbar row (DiffModeSelector + BranchPicker). `src/App.css` fully replaced with the dark-theme design tokens and all CSS classes needed by FileTree and the diff viewer. TypeScript strict mode and ESLint pass cleanly.
+
 ### Phase 2 — Diff Loading & File Tree
 
 - [x] **Task 2.4 — Frontend: File Tree Sidebar** (2026-03-28): `src/components/FileTree.tsx` groups changed files by directory, renders color-coded change-type badges (modified=orange, added=green, deleted=red, renamed=blue), shows comment count badges (reactive via optional `commentCounts` prop), highlights the active file, and exposes keyboard navigation. Wired into `App.tsx` as a 220px sidebar. Empty state shows "No changes". TypeScript strict mode and ESLint pass cleanly.
