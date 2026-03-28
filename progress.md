@@ -10,7 +10,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 0 — Foundation
 
-- [x] [#1 Task 0.1 — Project Scaffold](https://github.com/Krelborn/git-diff-review-tool/issues/1)
+- [ ] [#1 Task 0.1 — Project Scaffold](https://github.com/Krelborn/git-diff-review-tool/issues/1)
 - [ ] [#2 Task 0.2 — SQLite Schema Migration](https://github.com/Krelborn/git-diff-review-tool/issues/2)
 
 ## Phase 1 — Repository Management
@@ -21,8 +21,8 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 ## Phase 2 — Diff Loading & File Tree
 
 - [ ] [#5 Task 2.1 — Rust: Diff + Branch Commands](https://github.com/Krelborn/git-diff-review-tool/issues/5)
-- [ ] [#6 Task 2.2 — Frontend: Diff Text Parser](https://github.com/Krelborn/git-diff-review-tool/issues/6)
-- [ ] [#7 Task 2.3 — Frontend: diff Zustand Slice + DiffModeSelector + BranchPicker](https://github.com/Krelborn/git-diff-review-tool/issues/7)
+- [x] [#6 Task 2.2 — Frontend: Diff Text Parser](https://github.com/Krelborn/git-diff-review-tool/issues/6)
+- [x] [#7 Task 2.3 — Frontend: diff Zustand Slice + DiffModeSelector + BranchPicker](https://github.com/Krelborn/git-diff-review-tool/issues/7)
 - [ ] [#8 Task 2.4 — Frontend: File Tree Sidebar](https://github.com/Krelborn/git-diff-review-tool/issues/8)
 
 ## Phase 3 — Unified Diff Viewer
@@ -58,10 +58,16 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**1 / 21 complete**
+**3 / 21 complete**
 
 ---
 
 ## Notes for next session
 
-**Task 0.1 completed (2026-03-28).** Scaffold is in place with all plugins declared. Rust/Cargo is not yet installed on this machine — next task (0.2, SQLite schema migration) requires Cargo to be installed first. The frontend scaffold (`npm run lint`, `tsc --noEmit`) is fully verified. Once Rust is installed, run `cargo tauri dev` to confirm the window launches before starting 0.2.
+**Task 0.1 completed (2026-03-28).** Scaffold is in place with all plugins declared. Rust/Cargo is not yet installed on this machine — tasks 0.2, 1.1, 2.1, and 4.1 require Cargo to be installed before they can be implemented or verified.
+
+**Task 2.2 completed (2026-03-28).** `src/types/diff.ts` and `src/lib/diffParser.ts` are in place. The parser takes a raw `git diff` string and returns `DiffFile[]`. All TypeScript types for the frontend are now defined here. Tasks 2.3, 2.4, 3.1, and beyond can proceed using these types and the parser.
+
+**Task 2.3 completed (2026-03-28).** `src/store/` now has `reposSlice.ts`, `diffSlice.ts`, and `index.ts` (`useAppStore`). `DiffModeSelector` and `BranchPicker` components are in `src/components/`. The diff slice calls Tauri commands `get_diff`, `list_branches`, and `get_current_branch` — these silently fail (caught errors exposed via `diffError` state) until Task 2.1 provides the Rust implementations.
+
+**Recommended next steps (no Cargo needed):** Tasks 2.4 (File Tree Sidebar) or 3.1 (Unified Diff Renderer) — both use `useAppStore` from the now-complete store. Once Cargo is installed, resume from Task 0.2.
