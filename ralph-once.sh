@@ -10,3 +10,4 @@ Use this to leave a note for the next person who works on this project. \
 5. Make a git commit of the work that was done. \
 ONLY WORK ON A SINGLE TASK. \
 If, while implementing the task you notice that all tasks are complete, output <promise>COMPLETED</promise> and stop working. \
+"
