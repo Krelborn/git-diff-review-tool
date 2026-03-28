@@ -158,7 +158,7 @@ Developers using AI coding assistants (e.g. Claude Code) need a way to systemati
 ### Phase 0 — Foundation
 
 - [x] **Task 0.1 — Project Scaffold** (2026-03-28): Tauri v2 + Vite + React 19 + TypeScript scaffold created. `tauri-plugin-sql`, `tauri-plugin-shell`, and `tauri-plugin-clipboard-manager` declared in `Cargo.toml` and wired into `capabilities/default.json`. ESLint (flat config, v9) and Prettier configured. TypeScript strict mode verified. `npm run lint` and `tsc --noEmit` pass cleanly.
-- [ ] **Task 0.2 — SQLite Schema Migration**: pending (blocked — Rust/Cargo not yet installed)
+- [x] **Task 0.2 — SQLite Schema Migration** (2026-03-28): `tauri-plugin-sql` migration wired in `lib.rs`. Migration version 1 creates `repos` and `comments` tables (idempotent via `IF NOT EXISTS`) plus both indexes. Plugin handles version tracking internally. `db_health_check()` Tauri command returns `"ok"`. `cargo check` passes cleanly.
 
 ### Phase 3 — Unified Diff Viewer
 

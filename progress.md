@@ -11,7 +11,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 ## Phase 0 — Foundation
 
 - [x] [#1 Task 0.1 — Project Scaffold](https://github.com/Krelborn/git-diff-review-tool/issues/1)
-- [ ] [#2 Task 0.2 — SQLite Schema Migration](https://github.com/Krelborn/git-diff-review-tool/issues/2)
+- [x] [#2 Task 0.2 — SQLite Schema Migration](https://github.com/Krelborn/git-diff-review-tool/issues/2)
 
 ## Phase 1 — Repository Management
 
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**5 / 21 complete** (#1, #6, #7, #8, #9)
+**6 / 21 complete** (#1, #2, #6, #7, #8, #9)
 
 ---
 
@@ -74,4 +74,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 3.1 completed (2026-03-28).** `src/components/UnifiedDiffView.tsx` renders DiffFile hunks with the 4-column grid (old line#, new line#, indicator, content). Added=green, removed=red, context=muted. Hunk headers render as distinct separator rows. Empty state shows "Select a file to review". `src/App.css` fully replaced with dark-theme design tokens and CSS classes for FileTree + diff viewer. `App.tsx` wired with toolbar above diff viewer.
 
-**Recommended next steps:** Cargo is now installed. Task 0.2 (SQLite Schema Migration) is the highest-priority unblocked backend task — it unblocks Tasks 1.1, 1.2, 4.1, 4.2, and 4.3. Frontend-only work (Tasks 3.2, 3.3) can proceed in parallel if preferred.
+**Task 0.2 completed (2026-03-28).** SQLite migration wired via `tauri-plugin-sql` in `src-tauri/src/lib.rs`. Migration v1 creates `repos` and `comments` tables idempotently. `db_health_check()` command returns `"ok"`. Version tracking handled internally by the plugin.
+
+**Recommended next steps:** Task 0.2 is done, unblocking Tasks 1.1 (Rust: Repo Commands), 4.1 (Rust: Comment Commands), and 1.2 (Frontend: Repo List UI). Task 1.1 is the highest-priority next step — it wires up the repo add/remove/list Tauri commands that back the entire repo management flow.
