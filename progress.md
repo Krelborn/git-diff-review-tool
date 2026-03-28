@@ -15,7 +15,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 1 — Repository Management
 
-- [ ] [#3 Task 1.1 — Rust: Repo Commands](https://github.com/Krelborn/git-diff-review-tool/issues/3)
+- [x] [#3 Task 1.1 — Rust: Repo Commands](https://github.com/Krelborn/git-diff-review-tool/issues/3)
 - [ ] [#4 Task 1.2 — Frontend: Repo List UI + Zustand repos Slice](https://github.com/Krelborn/git-diff-review-tool/issues/4)
 
 ## Phase 2 — Diff Loading & File Tree
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**6 / 21 complete** (#1, #2, #6, #7, #8, #9)
+**7 / 21 complete** (#1, #2, #3, #6, #7, #8, #9)
 
 ---
 
@@ -76,4 +76,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 0.2 completed (2026-03-28).** SQLite migration wired via `tauri-plugin-sql` in `src-tauri/src/lib.rs`. Migration v1 creates `repos` and `comments` tables idempotently. `db_health_check()` command returns `"ok"`. Version tracking handled internally by the plugin.
 
-**Recommended next steps:** Task 0.2 is done, unblocking Tasks 1.1 (Rust: Repo Commands), 4.1 (Rust: Comment Commands), and 1.2 (Frontend: Repo List UI). Task 1.1 is the highest-priority next step — it wires up the repo add/remove/list Tauri commands that back the entire repo management flow.
+**Task 1.1 completed (2026-03-28).** `list_repos`, `add_repo`, and `remove_repo` Tauri commands are live in `src-tauri/src/lib.rs`. `rusqlite 0.31` and `chrono 0.4` added to `Cargo.toml`. The `.setup()` hook opens the same SQLite file as `tauri-plugin-sql` and bootstraps the schema idempotently via `execute_batch(INITIAL_SCHEMA)`. `add_repo` shells out to `git rev-parse --is-inside-work-tree` for validation; UNIQUE constraint violations map to "Repository already added". `remove_repo` ON DELETE CASCADE cleans up associated comments. `cargo check` clean.
+
+**Recommended next steps:** Task 1.2 (Frontend: Repo List UI + Zustand repos Slice) is now unblocked — it wires the new Rust commands into the sidebar's repo list, add/remove controls, and the `reposSlice`. Task 2.1 (Rust: Diff + Branch Commands) is also independently unblocked.
