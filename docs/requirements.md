@@ -152,3 +152,10 @@ Developers using AI coding assistants (e.g. Claude Code) need a way to systemati
 - Comments whose lines have shifted show an "Outdated" badge; they remain in output and are deletable (v1 approach — stale line indicator rather than silent misalignment)
 - Generated prompt is raw issue lines only, no preamble — format kept as generic as possible for paste into any AI tool
 - No target Claude Code skill mandated; output format is plain text designed to be universally readable
+
+## Implementation Status
+
+### Phase 0 — Foundation
+
+- [x] **Task 0.1 — Project Scaffold** (2026-03-28): Tauri v2 + Vite + React 19 + TypeScript scaffold created. `tauri-plugin-sql`, `tauri-plugin-shell`, and `tauri-plugin-clipboard-manager` declared in `Cargo.toml` and wired into `capabilities/default.json`. ESLint (flat config, v9) and Prettier configured. TypeScript strict mode verified. `npm run lint` and `tsc --noEmit` pass cleanly.
+- [ ] **Task 0.2 — SQLite Schema Migration**: pending

@@ -10,7 +10,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 0 — Foundation
 
-- [ ] [#1 Task 0.1 — Project Scaffold](https://github.com/Krelborn/git-diff-review-tool/issues/1)
+- [x] [#1 Task 0.1 — Project Scaffold](https://github.com/Krelborn/git-diff-review-tool/issues/1)
 - [ ] [#2 Task 0.2 — SQLite Schema Migration](https://github.com/Krelborn/git-diff-review-tool/issues/2)
 
 ## Phase 1 — Repository Management
@@ -58,4 +58,10 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**0 / 21 complete**
+**1 / 21 complete**
+
+---
+
+## Notes for next session
+
+**Task 0.1 completed (2026-03-28).** Scaffold is in place with all plugins declared. Rust/Cargo is not yet installed on this machine — next task (0.2, SQLite schema migration) requires Cargo to be installed first. The frontend scaffold (`npm run lint`, `tsc --noEmit`) is fully verified. Once Rust is installed, run `cargo tauri dev` to confirm the window launches before starting 0.2.
