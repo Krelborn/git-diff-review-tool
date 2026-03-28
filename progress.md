@@ -16,7 +16,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 ## Phase 1 — Repository Management
 
 - [x] [#3 Task 1.1 — Rust: Repo Commands](https://github.com/Krelborn/git-diff-review-tool/issues/3)
-- [ ] [#4 Task 1.2 — Frontend: Repo List UI + Zustand repos Slice](https://github.com/Krelborn/git-diff-review-tool/issues/4)
+- [x] [#4 Task 1.2 — Frontend: Repo List UI + Zustand repos Slice](https://github.com/Krelborn/git-diff-review-tool/issues/4)
 
 ## Phase 2 — Diff Loading & File Tree
 
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**8 / 21 complete** (#1, #2, #3, #5, #6, #7, #8, #9)
+**9 / 21 complete** (#1, #2, #3, #4, #5, #6, #7, #8, #9)
 
 ---
 
@@ -80,4 +80,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 2.1 completed (2026-03-28).** `get_diff`, `list_branches`, and `get_current_branch` Tauri commands are live in `src-tauri/src/lib.rs`. `DiffMode` Rust enum added with `#[serde(tag = "type", rename_all = "camelCase")]` matching the TypeScript type. `get_diff` calls `git diff HEAD` (working-tree) or `git diff <base>...HEAD` (branch). `list_branches` uses `--format=%(refname:short)`. `get_current_branch` uses `rev-parse --abbrev-ref HEAD`. All three registered in `invoke_handler!`. The diff slice's `loadDiff` and `loadBranches` will now receive real data instead of silently failing.
 
-**Recommended next steps:** Task 1.2 (Frontend: Repo List UI + Zustand repos Slice) is the highest priority — users currently have no way to add repos via the UI (the sidebar has no add button or repo list yet). With repo management working end-to-end, the full diff-viewing flow becomes testable. Task 4.1 (Rust: Comment Commands) is also independently unblocked.
+**Task 1.2 completed (2026-03-28).** `reposSlice` expanded with `loadRepos`, `addRepo` (with error state), and `removeRepo` (optimistic with rollback). `src/components/RepoList.tsx` renders the sidebar repo section with OS folder picker via `@tauri-apps/plugin-dialog`, active-state highlighting, and per-item remove button. `App.tsx` calls `loadRepos()` on mount. 6 Vitest unit tests in `src/store/reposSlice.test.ts` — all pass. Vitest + jsdom added to devDependencies. `tsc --noEmit` clean.
+
+**Recommended next steps:** Task 4.1 (Rust: Comment Commands) is the next highest priority — it unblocks the entire inline commenting feature chain (4.2, 4.3). Alternatively, Task 3.2 (Virtual Scroll) improves performance for large diffs and is fully independent.

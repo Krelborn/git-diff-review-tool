@@ -163,6 +163,7 @@ Developers using AI coding assistants (e.g. Claude Code) need a way to systemati
 ### Phase 1 — Repository Management
 
 - [x] **Task 1.1 — Rust: Repo Commands** (2026-03-28): `list_repos`, `add_repo`, and `remove_repo` Tauri commands implemented in `src-tauri/src/lib.rs`. `add_repo` validates the path via `git -C <path> rev-parse --is-inside-work-tree` before inserting; maps UNIQUE constraint violations to "Repository already added" and non-git paths to "Not a git repository". `remove_repo` deletes by id; ON DELETE CASCADE handles comment cleanup. Schema bootstrapped in `.setup()` hook via rusqlite (idempotent `CREATE IF NOT EXISTS`). `rusqlite 0.31` and `chrono 0.4` added to `Cargo.toml`. All four commands registered in `invoke_handler`. `cargo check` passes cleanly.
+- [x] **Task 1.2 — Frontend: Repo List UI + Zustand repos Slice** (2026-03-28): `reposSlice` expanded with `loadRepos`, `addRepo` (optimistic append, error on failure), and `removeRepo` (optimistic remove with rollback) actions. `src/components/RepoList.tsx` added — shows a "Repositories" section header with a "+" add button (opens macOS folder picker via `@tauri-apps/plugin-dialog`), lists repos with active-state highlighting and per-row "×" remove button, and shows `reposError` below the list on failure. `App.tsx` calls `loadRepos()` on mount and renders `<RepoList />` above `<FileTree />`. Vitest test suite (`src/store/reposSlice.test.ts`) covers all 6 paths — load, add, add-error, error-clear, remove, remove-rollback. `tsc --noEmit` clean.
 
 ### Phase 3 — Unified Diff Viewer
 

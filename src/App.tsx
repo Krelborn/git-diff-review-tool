@@ -3,14 +3,21 @@ import { type JSX, useEffect } from "react";
 import { BranchPicker } from "./components/BranchPicker";
 import { DiffModeSelector } from "./components/DiffModeSelector";
 import { FileTree } from "./components/FileTree";
+import { RepoList } from "./components/RepoList";
 import { UnifiedDiffView } from "./components/UnifiedDiffView";
 import { useAppStore } from "./store";
 
 function App(): JSX.Element {
   const loadBranches = useAppStore((s) => s.loadBranches);
   const loadDiff = useAppStore((s) => s.loadDiff);
+  const loadRepos = useAppStore((s) => s.loadRepos);
   const repos = useAppStore((s) => s.repos);
   const selectedRepoId = useAppStore((s) => s.selectedRepoId);
+
+  // Hydrate the repo list once on mount.
+  useEffect(() => {
+    void loadRepos();
+  }, [loadRepos]);
 
   useEffect(() => {
     const repo = repos.find((r) => r.id === selectedRepoId);
@@ -33,6 +40,7 @@ function App(): JSX.Element {
           width: "220px",
         }}
       >
+        <RepoList />
         <FileTree />
       </aside>
 
