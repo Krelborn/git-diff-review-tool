@@ -20,7 +20,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ## Phase 2 — Diff Loading & File Tree
 
-- [ ] [#5 Task 2.1 — Rust: Diff + Branch Commands](https://github.com/Krelborn/git-diff-review-tool/issues/5)
+- [x] [#5 Task 2.1 — Rust: Diff + Branch Commands](https://github.com/Krelborn/git-diff-review-tool/issues/5)
 - [x] [#6 Task 2.2 — Frontend: Diff Text Parser](https://github.com/Krelborn/git-diff-review-tool/issues/6)
 - [x] [#7 Task 2.3 — Frontend: diff Zustand Slice + DiffModeSelector + BranchPicker](https://github.com/Krelborn/git-diff-review-tool/issues/7)
 - [x] [#8 Task 2.4 — Frontend: File Tree Sidebar](https://github.com/Krelborn/git-diff-review-tool/issues/8)
@@ -58,7 +58,7 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 ---
 
-**7 / 21 complete** (#1, #2, #3, #6, #7, #8, #9)
+**8 / 21 complete** (#1, #2, #3, #5, #6, #7, #8, #9)
 
 ---
 
@@ -78,4 +78,6 @@ gh issue list --repo Krelborn/git-diff-review-tool --state all --json number,tit
 
 **Task 1.1 completed (2026-03-28).** `list_repos`, `add_repo`, and `remove_repo` Tauri commands are live in `src-tauri/src/lib.rs`. `rusqlite 0.31` and `chrono 0.4` added to `Cargo.toml`. The `.setup()` hook opens the same SQLite file as `tauri-plugin-sql` and bootstraps the schema idempotently via `execute_batch(INITIAL_SCHEMA)`. `add_repo` shells out to `git rev-parse --is-inside-work-tree` for validation; UNIQUE constraint violations map to "Repository already added". `remove_repo` ON DELETE CASCADE cleans up associated comments. `cargo check` clean.
 
-**Recommended next steps:** Task 1.2 (Frontend: Repo List UI + Zustand repos Slice) is now unblocked — it wires the new Rust commands into the sidebar's repo list, add/remove controls, and the `reposSlice`. Task 2.1 (Rust: Diff + Branch Commands) is also independently unblocked.
+**Task 2.1 completed (2026-03-28).** `get_diff`, `list_branches`, and `get_current_branch` Tauri commands are live in `src-tauri/src/lib.rs`. `DiffMode` Rust enum added with `#[serde(tag = "type", rename_all = "camelCase")]` matching the TypeScript type. `get_diff` calls `git diff HEAD` (working-tree) or `git diff <base>...HEAD` (branch). `list_branches` uses `--format=%(refname:short)`. `get_current_branch` uses `rev-parse --abbrev-ref HEAD`. All three registered in `invoke_handler!`. The diff slice's `loadDiff` and `loadBranches` will now receive real data instead of silently failing.
+
+**Recommended next steps:** Task 1.2 (Frontend: Repo List UI + Zustand repos Slice) is the highest priority — users currently have no way to add repos via the UI (the sidebar has no add button or repo list yet). With repo management working end-to-end, the full diff-viewing flow becomes testable. Task 4.1 (Rust: Comment Commands) is also independently unblocked.

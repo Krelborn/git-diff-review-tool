@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri_plugin_sql::{Builder as SqlBuilder, Migration, MigrationKind};
 
 const INITIAL_SCHEMA: &str = "
@@ -129,6 +129,119 @@ fn remove_repo(id: i64, state: tauri::State<'_, DbState>) -> Result<(), String> 
     Ok(())
 }
 
+/// Describes which set of changes to diff against.
+///
+/// Mirrors the TypeScript discriminated union:
+/// `type DiffMode = { type: "working-tree" } | { type: "branch"; baseBranch: string }`
+///
+/// Serde's `tag = "type"` maps the `type` key to the enum variant, and
+/// `rename_all = "camelCase"` applies to *field* names within each variant.
+/// The variant discriminants themselves are renamed explicitly because
+/// `"working-tree"` cannot be expressed by any automatic rename strategy.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum DiffMode {
+    /// Diff the working tree (staged + unstaged changes) against HEAD.
+    #[serde(rename = "working-tree")]
+    WorkingTree,
+
+    /// Diff the current HEAD against the point where it diverged from `base_branch`.
+    #[serde(rename = "branch")]
+    Branch {
+        /// The branch name to use as the comparison base (maps to `"baseBranch"` in JSON).
+        base_branch: String,
+    },
+}
+
+/// Returns the unified diff for the repository at `repo_path`.
+///
+/// - `WorkingTree` mode: `git diff HEAD` — all staged and unstaged changes relative to HEAD.
+/// - `Branch` mode: `git diff <base_branch>...HEAD` — changes since the common ancestor
+///   (three-dot diff), which excludes unrelated commits on the base branch.
+///
+/// # Errors
+/// Returns the captured stderr as an `Err` string if the git subprocess exits non-zero
+/// or cannot be spawned.
+#[tauri::command]
+fn get_diff(repo_path: String, mode: DiffMode) -> Result<String, String> {
+    let output = match mode {
+        DiffMode::WorkingTree => std::process::Command::new("git")
+            .args(["-C", &repo_path, "diff", "HEAD"])
+            .output()
+            .map_err(|e| e.to_string())?,
+
+        DiffMode::Branch { base_branch } => {
+            // Three-dot syntax: diff between the merge-base of base_branch and HEAD,
+            // so only commits unique to the current branch are included.
+            let range = format!("{}...HEAD", base_branch);
+            std::process::Command::new("git")
+                .args(["-C", &repo_path, "diff", &range])
+                .output()
+                .map_err(|e| e.to_string())?
+        }
+    };
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        return Err(stderr);
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+/// Returns a list of all local branch names for the repository at `repo_path`.
+///
+/// Uses `--format=%(refname:short)` to get clean branch names without the leading
+/// `* ` prefix that `git branch` would otherwise include.
+///
+/// # Errors
+/// Returns the captured stderr as an `Err` string if the git subprocess exits non-zero
+/// or cannot be spawned.
+#[tauri::command]
+fn list_branches(repo_path: String) -> Result<Vec<String>, String> {
+    let output = std::process::Command::new("git")
+        .args(["-C", &repo_path, "branch", "--format=%(refname:short)"])
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        return Err(stderr);
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let branches = stdout
+        .lines()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+
+    Ok(branches)
+}
+
+/// Returns the name of the currently checked-out branch for the repository at `repo_path`.
+///
+/// Uses `rev-parse --abbrev-ref HEAD` which returns `"HEAD"` when in a detached HEAD state.
+///
+/// # Errors
+/// Returns the captured stderr as an `Err` string if the git subprocess exits non-zero
+/// or cannot be spawned.
+#[tauri::command]
+fn get_current_branch(repo_path: String) -> Result<String, String> {
+    let output = std::process::Command::new("git")
+        .args(["-C", &repo_path, "rev-parse", "--abbrev-ref", "HEAD"])
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        return Err(stderr);
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![Migration {
@@ -160,7 +273,10 @@ pub fn run() {
             db_health_check,
             list_repos,
             add_repo,
-            remove_repo
+            remove_repo,
+            get_diff,
+            list_branches,
+            get_current_branch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
